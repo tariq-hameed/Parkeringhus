@@ -7,164 +7,224 @@ namespace Parkeringhus
 {
     class Program
     {
-        static string connenctionstring = "Data Source = (local); Initial Catalog = Parkeringhus; Integrated Security = true";
+        //static string connectionString= "Server=.;Database=Parkeringshus;Integrated Security=true";
+        static string connectionString = "Server=.;Initial Catalog=CarPark;Integrated Security=true";
+        //static string connectionString = "Data Source=.;Initial Catalog=Parkeringshus;Integrated Security=true";
         static void Main(string[] args)
         {
-
-
             bool shouldNotExit = true;
+
             while (shouldNotExit)
-
             {
+                WriteLine("1. Register arrival");
+                WriteLine("2. Register departure");
+                WriteLine("3. Show parking registry");
+                WriteLine("4. Exit");
 
-                Console.WriteLine("1. Register arrivals");
-                Console.WriteLine("2. Register departure");
-                Console.WriteLine("3. Show Parking registery");
-                Console.WriteLine("4. Exit");
+                ConsoleKeyInfo keyPressed = ReadKey(true);
 
-                ConsoleKeyInfo keypressed = ReadKey(true);
                 Clear();
 
-                switch (keypressed.Key)
+                switch (keyPressed.Key)
                 {
-
                     case ConsoleKey.D1:
                     case ConsoleKey.NumPad1:
-
-
-
                         {
-                            Write("Customer Name:");
-                            string customer = ReadLine();
+                            Write("First name: ");
 
+                            string firstName = ReadLine();
 
-                            Write("contact details:");
-                            string contactDetails = ReadLine();
+                            Write("Last name: ");
 
-                            Write("Registration number:");
+                            string lastName = ReadLine();
+
+                            Write("Social security number: ");
+
+                            string socialSecurityNumber = ReadLine();
+
+                            Write("Phone number: ");
+
+                            string phoneNumber = ReadLine();
+
+                            Write("E-mail: ");
+
+                            string email = ReadLine();
+
+                            Write("Registration number: ");
+
                             string registrationNumber = ReadLine();
 
-                            Write("Description:");
-                            string description = ReadLine();
+                            Write("Notes: ");
+
+                            string notes = ReadLine();
+
                             DateTime arrival = DateTime.Now;
-                            string query = @"INSERT INTO Parking(Customer, ContactDetails, RegistrationNumber, Description, Arrival)
-                                        VALUES(@Customer, @ContactDetails, @RegistrationNumber, @Description, @Arrival)";
 
-                            SqlConnection connection = new SqlConnection(connenctionstring);
-                            SqlCommand command = new SqlCommand(query, connection);
-
-                            command.Parameters.AddWithValue("@Customer", customer);
-                            command.Parameters.AddWithValue("@ContactDetails", contactDetails);
-                            command.Parameters.AddWithValue("@RegistrationNumber", registrationNumber);
-                            command.Parameters.AddWithValue("@Description", description);
-                            command.Parameters.AddWithValue("@Arrival", arrival);
-
-                            connection.Open();
-                            command.ExecuteNonQuery();
-                            connection.Close();
-
-                            // Add method to insert record into database
+                            RegisterArrival(
+                                firstName,
+                                lastName,
+                                socialSecurityNumber,
+                                phoneNumber,
+                                email,
+                                registrationNumber,
+                                notes,
+                                arrival);
 
                             Clear();
 
-                            WriteLine("Parkering registered");
+                            WriteLine("Arrival registered");
 
                             Thread.Sleep(2000);
 
-
                             break;
-
-
                         }
 
                     case ConsoleKey.D2:
                     case ConsoleKey.NumPad2:
                         {
-                            Write("Registration number: ");
+                            Write("Car: ");
+
                             string registrationNumber = ReadLine();
+
                             DateTime departure = DateTime.Now;
 
-                        string query = @"UPDATE Parking
-                                        SET Departure = @Departure 
-                                        WHERE RegistrationNumber = @RegistrationNumber
-                                        AND Departure IS NULL";
-
-                            SqlConnection connection = new SqlConnection(connenctionstring);
-                            SqlCommand command = new SqlCommand(query, connection);
-
-                            command.Parameters.AddWithValue("Departure", departure);
-                            command.Parameters.AddWithValue("RegistrationNumber", registrationNumber);
-                            connection.Open();
-
-                            command.ExecuteNonQuery();
-                            connection.Close();
-
-                           
+                            RegisterDeparture(registrationNumber, departure);
                         }
+
                         Clear();
+
+                        // TODO: create notice snippet
+
                         WriteLine("Departure registered");
+
                         Thread.Sleep(2000);
+
                         break;
+
                     case ConsoleKey.D3:
                     case ConsoleKey.NumPad3:
                         {
-                            WriteLine("ID       Registration number             Arrived at               Departed at");
-                            WriteLine("-----------------------------------------------------------------------------");
-
-                            string query = @"SELECT Id, 
-                                        Customer,
-                                        ContactDetails,
-                                        RegistrationNumber,
-                                        Description,
-                                        Arrival, 
-                                        Departure
-                                        FROM Parking;";
-                            SqlConnection connection = new SqlConnection(connenctionstring);
-                            SqlCommand command = new SqlCommand(query, connection);
-
-                            connection.Open();
-
-                            SqlDataReader datareader = command.ExecuteReader();
-                            while (datareader.Read())
-                            {
-                                string id = datareader["Id"].ToString();
-                                string registrationNumber = datareader["RegistrationNumber"].ToString();
-                                string arrival = datareader["Arrival"].ToString();
-                                string departure = datareader["Departure"].ToString();
-
-
-                                Write(id.PadRight(4, ' '));
-                                Write(registrationNumber.PadRight(8, ' '));
-                                Write(arrival.PadRight(16, ' '));
-                                WriteLine(departure);
-
-                            }
-
-
-
-                            connection.Close();
-
-                            WriteLine();
-                            WriteLine("<press any key to continue>");
-
-                            ReadKey(true);
+                            ShowParkingRegistry();
 
                             break;
                         }
 
                     case ConsoleKey.D4:
                     case ConsoleKey.NumPad4:
+
                         shouldNotExit = false;
+
                         break;
-
-
-
                 }
 
-
                 Clear();
-
             }
+
+        }
+
+        private static void ShowParkingRegistry()
+        {
+            WriteLine("ID   Registration number       Arrived at       Departed at");
+            WriteLine("--------------------------------------------------------------");
+
+            string query = @"SELECT Id, 
+	                                FirstName,
+                                    LastName,
+                                    SocialSecurityNumber,
+	                                PhoneNumber,
+                                    Email,
+	                                RegistrationNumber, 
+	                                Notes, 
+	                                ArrivedAt, 
+	                                DepartedAt
+	                           FROM Parking";
+
+            SqlConnection connection = new SqlConnection(connectionString);
+
+            SqlCommand command = new SqlCommand(query, connection);
+
+            connection.Open();
+
+            SqlDataReader dataReader = command.ExecuteReader();
+
+            while (dataReader.Read())
+            {
+                string id = dataReader["Id"].ToString();
+                string registrationNumber = dataReader["RegistrationNumber"].ToString();
+                string arrivedAt = dataReader["ArrivedAt"].ToString();
+                string departedAt = dataReader["DepartedAt"].ToString();
+
+                Write(id.PadRight(5, ' '));
+                Write(registrationNumber.PadRight(24, ' '));
+                Write(arrivedAt.PadRight(20, ' '));
+                WriteLine(departedAt);
+            }
+
+            connection.Close();
+
+            WriteLine();
+            WriteLine("<Press key to continue");
+
+            ReadKey(true);
+        }
+
+        private static void RegisterDeparture(string registrationNumber, DateTime departedAt)
+        {
+            string query = @"UPDATE Parking 
+                                SET DepartedAt = @DepartedAt
+                              WHERE RegistrationNumber = @RegistrationNumber
+                                AND DepartedAt IS NULL";
+
+            SqlConnection connection = new SqlConnection(connectionString);
+
+            SqlCommand command = new SqlCommand(query, connection);
+
+            command.Parameters.AddWithValue("DepartedAt", departedAt);
+            command.Parameters.AddWithValue("RegistrationNumber", registrationNumber);
+
+            connection.Open();
+
+            command.ExecuteNonQuery();
+
+            connection.Close();
+        }
+
+        private static void RegisterArrival(string firstName, string lastName, string socialSecurityNumber, string phoneNumber, string email, string registrationNumber, string notes, DateTime arrivedAt)
+        {
+            string query = @"INSERT INTO Parking (FirstName, 
+                                                  LastName, 
+                                                  SocialSecurityNumber,
+                                                  PhoneNumber,
+                                                  Email,
+                                                  RegistrationNumber, 
+                                                  Notes, 
+                                                  ArrivedAt)
+                                          VALUES (@FirstName,
+                                                  @LastName,
+                                                  @SocialSecurityNumber, 
+                                                  @PhoneNumber,
+                                                  @Email, 
+                                                  @RegistrationNumber, 
+                                                  @Notes, 
+                                                  @ArrivedAt)";
+
+            SqlConnection connection = new SqlConnection(connectionString);
+            SqlCommand command = new SqlCommand(query, connection);
+
+            command.Parameters.AddWithValue("@FirstName", firstName);
+            command.Parameters.AddWithValue("@LastName", lastName);
+            command.Parameters.AddWithValue("@SocialSecurityNumber", socialSecurityNumber);
+            command.Parameters.AddWithValue("@PhoneNumber", phoneNumber);
+            command.Parameters.AddWithValue("@Email", email);
+            command.Parameters.AddWithValue("@RegistrationNumber", registrationNumber);
+            command.Parameters.AddWithValue("@Notes", notes);
+            command.Parameters.AddWithValue("@ArrivedAt", arrivedAt);
+
+            connection.Open();
+
+            command.ExecuteNonQuery();
+
+            connection.Close();
         }
     }
 }
